@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - TechCycle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="dashboard-container">
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="sidebar-modern" style="width: 280px;">
+            <div class="sidebar-brand">
+                <h3>TechCycle</h3>
+                <small>Sistema de Gestão</small>
+            </div>
+            
+            <div class="sidebar-menu">
+                <a href="dashboard.html" class="menu-item">
+                    <i class="menu-icon fas fa-home"></i>
+                    Dashboard
+                </a>
+                <a href="novo-chamado.html" class="menu-item">
+                    <i class="menu-icon fas fa-plus-circle"></i>
+                    Novo Chamado
+                </a>
+                <a href="#" class="menu-item" onclick="abrirTodosChamados()">
+                    <i class="menu-icon fas fa-list"></i>
+                    Meus Chamados
+                </a>
+                <a href="relatorios.html" class="menu-item active">
+                    <i class="menu-icon fas fa-chart-bar"></i>
+                    Relatórios
+                </a>
+                <a href="configuracoes.html" class="menu-item">
+                    <i class="menu-icon fas fa-cog"></i>
+                    Configurações
+                </a>
+                
+                <div class="menu-divider"></div>
+                
+                <a href="/login" class="menu-item">
+                    <i class="menu-icon fas fa-sign-out-alt"></i>
+                    Sair
+                </a>
+            </div>
+            
+            <div class="mt-auto p-3">
+                <div class="text-center">
+                    <small>TechCycle v1.0</small>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <div class="flex-grow-1">
+            <!-- Header -->
+            <header class="header-modern">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary me-3 d-md-none" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h4>Relatórios e Estatísticas</h4>
+                </div>
+                
+                <div class="header-right">
+                    <div class="theme-toggle" onclick="toggleTheme()">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                    
+                    <div class="user-menu-container">
+                        <div class="dropdown">
+                            <button class="user-menu dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="fas fa-user"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Perfil</a></li>
+                                <li><a class="dropdown-item" href="configuracoes.html"><i class="fas fa-cog me-2"></i>Configurações</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="/login"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Conteúdo -->
+            <main class="p-4">
+                <!-- Filtros -->
+                <div class="form-modern fade-in mb-4">
+                    <h5>
+                        <i class="fas fa-filter me-2"></i>Filtros do Relatório
+                    </h5>
+                    
+                    <form id="filtroForm">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Data Inicial</label>
+                                <input type="date" class="form-control" id="dataInicial">
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="form-label">Data Final</label>
+                                <input type="date" class="form-control" id="dataFinal">
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="form-label">Tipo</label>
+                                <select class="form-control" id="tipoFiltro">
+                                    <option value="">Todos os Tipos</option>
+                                    <option value="Computador">Computador</option>
+                                    <option value="Notebook">Notebook</option>
+                                    <option value="Impressora">Impressora</option>
+                                    <option value="Monitor">Monitor</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-control" id="statusFiltro">
+                                    <option value="">Todos os Status</option>
+                                    <option value="Aberto">Aberto</option>
+                                    <option value="Processando">Processando</option>
+                                    <option value="Concluído">Concluído</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-modern me-2">
+                                    <i class="fas fa-chart-bar me-2"></i>Gerar Relatório
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" onclick="exportarRelatorio()">
+                                    <i class="fas fa-download me-2"></i>Exportar PDF
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Estatísticas Principais -->
+                <div class="stats-grid fade-in mb-4">
+                    <div class="stat-card">
+                        <div class="stat-icon text-primary">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-number" id="totalRelatorio">0</div>
+                        <div class="stat-title">Total no Período</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon text-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-number" id="concluidosRelatorio">0</div>
+                        <div class="stat-title">Concluídos</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon text-warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-number" id="pendentesRelatorio">0</div>
+                        <div class="stat-title">Pendentes</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon text-info">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="stat-number" id="taxaRelatorio">0%</div>
+                        <div class="stat-title">Taxa de Conclusão</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="form-modern fade-in mb-4">
+                            <h5>
+                                <i class="fas fa-chart-pie me-2"></i>Distribuição por Tipo
+                            </h5>
+                            <canvas id="tipoChart" height="250"></canvas>
+                        </div>
+                        
+                        <div class="form-modern fade-in">
+                            <h5>
+                                <i class="fas fa-chart-line me-2"></i>Evolução Mensal
+                            </h5>
+                            <canvas id="evolucaoChart" height="250"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="form-modern fade-in mb-4">
+                            <h5>
+                                <i class="fas fa-tasks me-2"></i>Status dos Chamados
+                            </h5>
+                            <canvas id="statusChart" height="250"></canvas>
+                        </div>
+                        
+                        <div class="form-modern fade-in">
+                            <h5>
+                                <i class="fas fa-trophy me-2"></i>Top Equipamentos
+                            </h5>
+                            <div id="topEquipamentos">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>Carregando...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-modern fade-in mt-4">
+                    <h5>
+                        <i class="fas fa-table me-2"></i>Relatório Detalhado
+                    </h5>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-modern">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Equipamento</th>
+                                    <th>Tipo</th>
+                                    <th>Marca</th>
+                                    <th>Status</th>
+                                    <th>Data</th>
+                                    <th>Prioridade</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelaRelatorio">
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">
+                                        <i class="fas fa-filter me-2"></i>Use os filtros para gerar o relatório
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        let tipoChart, evolucaoChart, statusChart;
+        // Armazena todos os chamados carregados do banco para reutilização nos filtros
+        let todosChamadosCarregados = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            configurarDatasPadrao();
+            carregarRelatorio();
+        });
+
+        function configurarDatasPadrao() {
+            const hoje = new Date();
+            const trintaDiasAtras = new Date();
+            trintaDiasAtras.setDate(hoje.getDate() - 30);
+            
+            document.getElementById('dataFinal').value = hoje.toISOString().split('T')[0];
+            document.getElementById('dataInicial').value = trintaDiasAtras.toISOString().split('T')[0];
+        }
+
+        function toggleSidebar() {
+            document.querySelector('.sidebar-modern').classList.toggle('active');
+        }
+
+        async function carregarRelatorio() {
+            try {
+                // Busca todos os chamados reais do banco de dados
+                const resChamados = await fetch('/chamados');
+                if (!resChamados.ok) throw new Error('Erro ao buscar chamados');
+                
+                todosChamadosCarregados = await resChamados.json();
+
+                // Aplica os filtros selecionados pelo usuário
+                const chamadosFiltrados = aplicarFiltros(todosChamadosCarregados);
+
+                // Atualiza os cards de estatísticas com base nos chamados filtrados
+                atualizarEstatisticasDosChamados(chamadosFiltrados);
+
+                // Atualiza os gráficos com dados reais calculados dos chamados filtrados
+                criarGraficos(chamadosFiltrados);
+
+                // Atualiza a tabela detalhada com os chamados filtrados
+                atualizarTabelaRelatorio(chamadosFiltrados);
+
+                // Atualiza o ranking de equipamentos com base nos chamados filtrados
+                atualizarTopEquipamentos(chamadosFiltrados);
+
+            } catch (error) {
+                console.error('Erro ao carregar relatório:', error);
+            }
+        }
+
+        /**
+         * Aplica os filtros de data, tipo e status sobre a lista completa de chamados.
+         * Retorna apenas os chamados que atendem a todos os critérios selecionados.
+         */
+        function aplicarFiltros(chamados) {
+            const dataInicial = document.getElementById('dataInicial').value;
+            const dataFinal = document.getElementById('dataFinal').value;
+            const tipoFiltro = document.getElementById('tipoFiltro').value;
+            const statusFiltro = document.getElementById('statusFiltro').value;
+
+            return chamados.filter(chamado => {
+                // Filtro por data de abertura
+                if (dataInicial && chamado.data_abertura) {
+                    if (chamado.data_abertura < dataInicial) return false;
+                }
+                if (dataFinal && chamado.data_abertura) {
+                    if (chamado.data_abertura > dataFinal) return false;
+                }
+
+                // Filtro por tipo de equipamento
+                if (tipoFiltro && chamado.tipo !== tipoFiltro) return false;
+
+                // Filtro por status
+                if (statusFiltro && chamado.status !== statusFiltro) return false;
+
+                return true;
+            });
+        }
+
+        /**
+         * Calcula e exibe as estatísticas (total, concluídos, pendentes, taxa)
+         * diretamente a partir dos chamados filtrados do banco de dados.
+         */
+        function atualizarEstatisticasDosChamados(chamados) {
+            const total = chamados.length;
+            const concluidos = chamados.filter(c => c.status === 'Concluído').length;
+            const pendentes = chamados.filter(c =>
+                !c.status || c.status === 'Aberto' || c.status === 'Pendente' || c.status === 'Processando'
+            ).length;
+            const taxaSucesso = total > 0 ? Math.round((concluidos / total) * 100) : 0;
+
+            document.getElementById('totalRelatorio').textContent = total;
+            document.getElementById('concluidosRelatorio').textContent = concluidos;
+            document.getElementById('pendentesRelatorio').textContent = pendentes;
+            document.getElementById('taxaRelatorio').textContent = taxaSucesso + '%';
+        }
+
+        /**
+         * Cria os três gráficos (tipo, evolução mensal, status) com dados
+         * calculados dinamicamente a partir dos chamados reais do banco.
+         */
+        function criarGraficos(chamados) {
+            const isLight = document.body.classList.contains('light-theme');
+            const textColor = isLight ? '#333' : '#fff';
+            const gridColor = isLight ? '#ddd' : 'rgba(255,255,255,0.1)';
+
+            // ── Gráfico 1: Distribuição por Tipo ──────────────────────────────
+            // Agrupa chamados por tipo e conta as ocorrências reais
+            const contagemTipo = {};
+            chamados.forEach(c => {
+                const tipo = c.tipo || 'Não informado';
+                contagemTipo[tipo] = (contagemTipo[tipo] || 0) + 1;
+            });
+
+            const coresTipo = ['#22D4FD', '#1e90ff', '#4361ee', '#3a0ca3', '#7209b7', '#f72585', '#fb8500', '#8ecae6'];
+            const ctxTipo = document.getElementById('tipoChart').getContext('2d');
+            if (tipoChart) tipoChart.destroy();
+
+            if (Object.keys(contagemTipo).length === 0) {
+                ctxTipo.canvas.parentElement.innerHTML += '<p class="text-center text-muted mt-2">Nenhum dado disponível</p>';
+            } else {
+                tipoChart = new Chart(ctxTipo, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(contagemTipo),
+                        datasets: [{
+                            data: Object.values(contagemTipo),
+                            backgroundColor: coresTipo.slice(0, Object.keys(contagemTipo).length),
+                            borderWidth: 2,
+                            borderColor: isLight ? '#fff' : '#000'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: textColor, padding: 20 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // ── Gráfico 2: Evolução Mensal ────────────────────────────────────
+            // Agrupa chamados por mês/ano usando a data_abertura real do banco
+            const mesesLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const anoAtual = new Date().getFullYear();
+
+            // Inicializa contadores zerados para os 12 meses do ano atual
+            const abertosporMes = new Array(12).fill(0);
+            const concluidosPorMes = new Array(12).fill(0);
+
+            chamados.forEach(c => {
+                if (!c.data_abertura && !c.criado_em) return;
+                // Usa data_abertura se disponível, senão usa criado_em
+                const dataRef = c.data_abertura ? c.data_abertura : c.criado_em;
+                const data = new Date(dataRef);
+                if (data.getFullYear() !== anoAtual) return;
+                const mes = data.getMonth(); // 0 = Janeiro
+                abertosporMes[mes]++;
+                if (c.status === 'Concluído') {
+                    concluidosPorMes[mes]++;
+                }
+            });
+
+            const ctxEvolucao = document.getElementById('evolucaoChart').getContext('2d');
+            if (evolucaoChart) evolucaoChart.destroy();
+            evolucaoChart = new Chart(ctxEvolucao, {
+                type: 'line',
+                data: {
+                    labels: mesesLabels,
+                    datasets: [
+                        {
+                            label: 'Abertos',
+                            data: abertosporMes,
+                            borderColor: '#22D4FD',
+                            backgroundColor: 'rgba(34, 212, 253, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Concluídos',
+                            data: concluidosPorMes,
+                            borderColor: '#90ee90',
+                            backgroundColor: 'rgba(144, 238, 144, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: textColor } }
+                    },
+                    scales: {
+                        x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                        y: {
+                            grid: { color: gridColor },
+                            ticks: { color: textColor, stepSize: 1, precision: 0 },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // ── Gráfico 3: Status dos Chamados ────────────────────────────────
+            // Conta os chamados por status real registrado no banco
+            const contagemStatus = {};
+            chamados.forEach(c => {
+                const status = c.status || 'Aberto';
+                contagemStatus[status] = (contagemStatus[status] || 0) + 1;
+            });
+
+            const coresStatus = {
+                'Aberto': '#ffd700',
+                'Processando': '#22D4FD',
+                'Concluído': '#90ee90',
+                'Pendente': '#fb8500'
+            };
+            const statusLabels = Object.keys(contagemStatus);
+            const statusCores = statusLabels.map(s => coresStatus[s] || '#aaa');
+
+            const ctxStatus = document.getElementById('statusChart').getContext('2d');
+            if (statusChart) statusChart.destroy();
+
+            if (statusLabels.length === 0) {
+                ctxStatus.canvas.parentElement.innerHTML += '<p class="text-center text-muted mt-2">Nenhum dado disponível</p>';
+            } else {
+                statusChart = new Chart(ctxStatus, {
+                    type: 'pie',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{
+                            data: Object.values(contagemStatus),
+                            backgroundColor: statusCores,
+                            borderWidth: 2,
+                            borderColor: isLight ? '#fff' : '#000'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: textColor, padding: 20 }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        /**
+         * Atualiza a tabela detalhada com os chamados reais filtrados do banco.
+         * Exibe todos os chamados do período (sem limite fixo de 10).
+         */
+        function atualizarTabelaRelatorio(chamados) {
+            const tbody = document.getElementById('tabelaRelatorio');
+            
+            if (chamados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Nenhum chamado encontrado para os filtros selecionados</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            chamados.forEach(chamado => {
+                const statusClass = chamado.status === 'Concluído' ? 'badge-success' :
+                                    chamado.status === 'Processando' ? 'badge-info' : 'badge-pending';
+                tbody.innerHTML += `
+                    <tr>
+                        <td>#${chamado.id}</td>
+                        <td>${chamado.nome_chamado || '—'}</td>
+                        <td>${chamado.tipo || '—'}</td>
+                        <td>${chamado.marca || '—'}</td>
+                        <td><span class="badge ${statusClass}">${chamado.status || 'Aberto'}</span></td>
+                        <td>${formatarData(chamado.data_abertura)}</td>
+                        <td><span class="badge badge-primary">${chamado.prioridade || 'Média'}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        /**
+         * Calcula o ranking de equipamentos mais recorrentes com base nos
+         * chamados reais do banco, agrupando por nome do chamado (equipamento).
+         */
+        function atualizarTopEquipamentos(chamados) {
+            const container = document.getElementById('topEquipamentos');
+
+            if (chamados.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Nenhum dado disponível</p>';
+                return;
+            }
+
+            // Conta ocorrências por nome de equipamento (nome_chamado)
+            const contagemEquip = {};
+            chamados.forEach(c => {
+                const nome = c.nome_chamado || 'Não informado';
+                contagemEquip[nome] = (contagemEquip[nome] || 0) + 1;
+            });
+
+            // Ordena do mais recorrente para o menos e pega o top 5
+            const top5 = Object.entries(contagemEquip)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+            
+            container.innerHTML = '';
+            top5.forEach(([nome, count], index) => {
+                container.innerHTML += `
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 rounded" style="background: rgba(255,255,255,0.05)">
+                        <div class="d-flex align-items-center">
+                            <span class="badge-primary me-2" style="background:#22D4FD; color:#000; padding:2px 8px; border-radius:20px">${index + 1}</span>
+                            <span>${nome}</span>
+                        </div>
+                        <span class="badge-secondary">${count}</span>
+                    </div>
+                `;
+            });
+        }
+
+        async function exportarRelatorio() {
+            const { jsPDF } = window.jspdf;
+            const btn = document.querySelector('button[onclick="exportarRelatorio()"]');
+            const originalText = btn.innerHTML;
+            
+            try {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Gerando PDF...';
+                btn.disabled = true;
+
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                
+                // 1. CABEÇALHO PROFISSIONAL
+                doc.setFillColor(30, 30, 30);
+                doc.rect(0, 0, pageWidth, 40, 'F');
+                
+                doc.setFontSize(24);
+                doc.setTextColor(34, 212, 253); // Azul TechCycle
+                doc.setFont('helvetica', 'bold');
+                doc.text('TECHCYCLE', 20, 20);
+                
+                doc.setFontSize(10);
+                doc.setTextColor(200, 200, 200);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Sistema de Gestão de Descarte Tecnológico', 20, 28);
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(12);
+                const dataGeracao = new Date().toLocaleString('pt-BR');
+                doc.text(`Relatório Gerado em: ${dataGeracao}`, pageWidth - 20, 25, { align: 'right' });
+
+                // 2. RESUMO EXECUTIVO (ESTATÍSTICAS)
+                let currentY = 55;
+                doc.setFontSize(16);
+                doc.setTextColor(30, 30, 30);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Resumo Geral do Período', 20, currentY);
+                
+                currentY += 10;
+                const total = document.getElementById('totalRelatorio').textContent;
+                const concluidos = document.getElementById('concluidosRelatorio').textContent;
+                const pendentes = document.getElementById('pendentesRelatorio').textContent;
+                const taxa = document.getElementById('taxaRelatorio').textContent;
+
+                doc.autoTable({
+                    startY: currentY,
+                    head: [['Métrica', 'Valor']],
+                    body: [
+                        ['Total de Chamados no Período', total],
+                        ['Chamados Concluídos', concluidos],
+                        ['Chamados Pendentes/Em Processo', pendentes],
+                        ['Taxa de Eficiência (Conclusão)', taxa]
+                    ],
+                    theme: 'striped',
+                    headStyles: { fillColor: [34, 212, 253], textColor: [0, 0, 0] },
+                    margin: { left: 20, right: 20 }
+                });
+
+                currentY = doc.lastAutoTable.finalY + 20;
+
+                // 3. ANÁLISE VISUAL (GRÁFICOS COMO IMAGENS DE ALTA QUALIDADE)
+                doc.setFontSize(16);
+                doc.text('Análise de Distribuição e Status', 20, currentY);
+                
+                // Capturar os gráficos individualmente para melhor qualidade
+                const tipoCanvas = document.getElementById('tipoChart');
+                const statusCanvas = document.getElementById('statusChart');
+                
+                const imgTipo = tipoCanvas.toDataURL('image/png');
+                const imgStatus = statusCanvas.toDataURL('image/png');
+                
+                doc.addImage(imgTipo, 'PNG', 20, currentY + 5, 80, 60);
+                doc.addImage(imgStatus, 'PNG', 110, currentY + 5, 80, 60);
+                
+                doc.setFontSize(9);
+                doc.setTextColor(100);
+                doc.text('Distribuição por Tipo de Equipamento', 60, currentY + 70, { align: 'center' });
+                doc.text('Status Atual dos Chamados', 150, currentY + 70, { align: 'center' });
+
+                // 4. TABELA DETALHADA (NATAL DO PDF)
+                doc.addPage();
+                doc.setFontSize(18);
+                doc.setTextColor(30, 30, 30);
+                doc.text('Detalhamento dos Registros', 20, 20);
+
+                const tableRows = [];
+                const rows = document.querySelectorAll('#tabelaRelatorio tr');
+                
+                rows.forEach(row => {
+                    const cols = row.querySelectorAll('td');
+                    if (cols.length > 0) {
+                        tableRows.push([
+                            cols[0].innerText, // ID
+                            cols[1].innerText, // Equipamento
+                            cols[2].innerText, // Tipo
+                            cols[3].innerText, // Marca
+                            cols[4].innerText, // Status
+                            cols[5].innerText, // Data
+                            cols[6].innerText  // Prioridade
+                        ]);
+                    }
+                });
+
+                doc.autoTable({
+                    startY: 30,
+                    head: [['ID', 'Equipamento', 'Tipo', 'Marca', 'Status', 'Data', 'Prioridade']],
+                    body: tableRows,
+                    theme: 'grid',
+                    headStyles: { fillColor: [30, 30, 30], textColor: [255, 255, 255] },
+                    styles: { fontSize: 9, cellPadding: 3 },
+                    columnStyles: {
+                        0: { cellWidth: 15 },
+                        4: { fontStyle: 'bold' }
+                    },
+                    margin: { left: 15, right: 15 }
+                });
+
+                // RODAPÉ
+                const pageCount = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(150);
+                    doc.text(`Página ${i} de ${pageCount} - TechCycle Gestão de Resíduos`, pageWidth / 2, 285, { align: 'center' });
+                }
+
+                doc.save(`Relatorio_TechCycle_${new Date().toISOString().split('T')[0]}.pdf`);
+                
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                alert('Erro ao gerar o PDF estruturado. Tente novamente.');
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Ao submeter o formulário de filtros, recarrega o relatório aplicando os filtros
+        document.getElementById('filtroForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // Se já temos os chamados em memória, apenas reaplica os filtros sem nova requisição
+            if (todosChamadosCarregados.length > 0) {
+                const chamadosFiltrados = aplicarFiltros(todosChamadosCarregados);
+                atualizarEstatisticasDosChamados(chamadosFiltrados);
+                criarGraficos(chamadosFiltrados);
+                atualizarTabelaRelatorio(chamadosFiltrados);
+                atualizarTopEquipamentos(chamadosFiltrados);
+            } else {
+                await carregarRelatorio();
+            }
+        });
+
+        async function abrirTodosChamados() {
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>
