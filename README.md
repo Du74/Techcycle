@@ -250,7 +250,6 @@ Desenvolvido por alunos do curso de extensão com foco em sustentabilidade e ges
 
 ---
 
-📧 **Contato:** [techcycle@exemplo.com](mailto:techcycle@exemplo.com)  
 🔗 **Repositório:** [GitHub - TechCycle](https://github.com/Du74/Projeto-de-extens-o---Techcycle)
 ```
 
