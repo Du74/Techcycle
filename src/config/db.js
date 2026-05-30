@@ -1,13 +1,16 @@
 const mysql = require('mysql2');
+require('dotenv').config();
 
-// Configuração para suportar tanto conexão local quanto string de conexão de produção (Render/Railway)
+// Diagnóstico de ambiente inicial
+console.log('\n🔍 --- DIAGNÓSTICO DE AMBIENTE ---');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('DATABASE_URL detectada:', process.env.DATABASE_URL ? 'SIM (Inicia com ' + process.env.DATABASE_URL.substring(0, 10) + '...)' : 'NÃO');
+console.log('DB_HOST:', process.env.DB_HOST || 'não definido');
+console.log('----------------------------------\n');
+
 let dbConfig;
 
 if (process.env.DATABASE_URL) {
-  // Se houver DATABASE_URL, usamos ela diretamente (o driver mysql suporta string de conexão)
-  dbConfig = process.env.DATABASE_URL;
-  
-  // Para Aiven e outros serviços gerenciados, o SSL é obrigatório
   try {
     const mysqlUrl = new URL(process.env.DATABASE_URL);
     dbConfig = {
@@ -19,68 +22,54 @@ if (process.env.DATABASE_URL) {
       ssl: { 
         rejectUnauthorized: false 
       },
-      connectTimeout: 10000
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0
     };
+    console.log('📡 Configurando Pool para produção (Aiven/SSL)');
   } catch (e) {
+    console.error('❌ Erro ao processar DATABASE_URL:', e.message);
     dbConfig = process.env.DATABASE_URL;
   }
 } else {
-  // Configuração local
   dbConfig = {
     host: process.env.DB_HOST || "localhost",
     user: process.env.DB_USER || "root", 
     password: process.env.DB_PASS || "1608",
-    database: process.env.DB_NAME || "techcycle"
+    database: process.env.DB_NAME || "techcycle",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
   };
+  console.log('🏠 Configurando Pool para ambiente local');
 }
 
-const db = mysql.createConnection(dbConfig);
+// Criar Pool em vez de Connection única (mais resiliente para nuvem)
+const pool = mysql.createPool(dbConfig);
 
-console.log('🔌 Tentando conectar ao banco de dados...');
-if (process.env.DATABASE_URL) {
-  console.log('📡 Usando DATABASE_URL (Produção/Aiven)');
-} else {
-  console.log('🏠 Usando configurações locais');
-}
-
-db.connect(err => {
+// Testar conexão inicial
+pool.getConnection((err, connection) => {
   if (err) {
-    console.error('❌ ERRO CRÍTICO DE CONEXÃO MYSQL:', err);
-    console.log('📋 Detalhes técnicos do erro:');
-    console.log('- Código:', err.code);
-    console.log('- Estado SQL:', err.sqlState);
-    console.log('- Fatal:', err.fatal);
-    console.log('- Mensagem:', err.message);
-    
-    if (err.code === 'ER_ACCESS_DENIED_ERROR') {
-      console.log('🔑 Erro de autenticação: Verifique usuário e senha.');
-    } else if (err.code === 'ENOTFOUND' || err.code === 'ETIMEDOUT') {
-      console.log('🌐 Erro de rede: Verifique o host e se o banco está acessível.');
-    } else if (err.code === 'ER_BAD_DB_ERROR') {
-      console.log('📂 Banco de dados não encontrado: Verifique se o database "techcycle" foi criado.');
-    }
-  } else {
-    console.log('✅ Conexão estabelecida com sucesso!');
-    
-    // Testar se as tabelas existem
-    db.query("SHOW TABLES LIKE 'usuarios'", (err, results) => {
-      if (err) {
-        console.log('❌ Erro ao verificar tabelas:', err.message);
-      } else if (results.length === 0) {
-        console.log('⚠️ AVISO: A tabela "usuarios" não foi encontrada. Você importou o arquivo banco.sql?');
-      } else {
-        console.log('✅ Tabela "usuarios" detectada.');
-      }
+    console.error('❌ ERRO AO OBTER CONEXÃO DO POOL:', err.message);
+    console.log('📋 Detalhes técnicos:', {
+      code: err.code,
+      errno: err.errno,
+      sqlState: err.sqlState,
+      address: err.address,
+      port: err.port
     });
+  } else {
+    console.log('✅ Pool de conexões estabelecido com sucesso!');
     
-    db.query("SELECT 1", (err) => {
-      if (err) {
-        console.log('❌ Erro na query de teste SELECT 1:', err.message);
-      } else {
-        console.log('✅ Query de teste (SELECT 1) concluída com sucesso.');
-      }
+    connection.query("SHOW TABLES LIKE 'usuarios'", (err, results) => {
+      if (err) console.log('❌ Erro ao verificar tabelas:', err.message);
+      else if (results.length === 0) console.log('⚠️ AVISO: Tabela "usuarios" NÃO ENCONTRADA no banco.');
+      else console.log('✅ Tabela "usuarios" confirmada.');
+      
+      connection.release(); // Importante: liberar a conexão de volta para o pool
     });
   }
 });
 
-module.exports = db;
+// Exportar o pool (mysql2 permite usar .query() direto no pool)
+module.exports = pool;
