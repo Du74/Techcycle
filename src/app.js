@@ -15,11 +15,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Log de requisições
-app.use((req, res, next) => {
-  console.log(`📨 ${req.method} ${req.url}`);
-  next();
-});
+// Log de requisições (apenas em desenvolvimento)
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(`📨 ${req.method} ${req.url}`);
+    next();
+  });
+}
 
 // ==================== DIAGNÓSTICO ====================
 console.log("🔍 DIAGNÓSTICO DO SERVIDOR:");

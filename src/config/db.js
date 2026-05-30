@@ -1,11 +1,16 @@
 const mysql = require('mysql');
 
-const db = mysql.createConnection({
+// Configuração para suportar tanto conexão local quanto string de conexão de produção (Render/Railway)
+const dbConfig = process.env.DATABASE_URL || {
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "root", 
   password: process.env.DB_PASS || "1608",
-  database: process.env.DB_NAME || "techcycle"
-});
+  database: process.env.DB_NAME || "techcycle",
+  // SSL é necessário para a maioria dos bancos de dados em nuvem
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+};
+
+const db = mysql.createConnection(dbConfig);
 
 db.connect(err => {
   if (err) {
