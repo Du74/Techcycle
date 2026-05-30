@@ -1,14 +1,34 @@
 const mysql = require('mysql');
 
 // Configuração para suportar tanto conexão local quanto string de conexão de produção (Render/Railway)
-const dbConfig = process.env.DATABASE_URL || {
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root", 
-  password: process.env.DB_PASS || "1608",
-  database: process.env.DB_NAME || "techcycle",
-  // SSL é necessário para a maioria dos bancos de dados em nuvem
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-};
+let dbConfig;
+
+if (process.env.DATABASE_URL) {
+  // Se houver DATABASE_URL, usamos ela diretamente (o driver mysql suporta string de conexão)
+  dbConfig = process.env.DATABASE_URL;
+  
+  // Adiciona suporte a SSL se for produção (necessário para Aiven)
+  if (process.env.NODE_ENV === 'production') {
+    // Para strings de conexão, o driver mysql pode precisar de ajustes ou usar um objeto
+    const mysqlUrl = new URL(process.env.DATABASE_URL);
+    dbConfig = {
+      host: mysqlUrl.hostname,
+      port: mysqlUrl.port,
+      user: mysqlUrl.username,
+      password: decodeURIComponent(mysqlUrl.password),
+      database: mysqlUrl.pathname.substring(1),
+      ssl: { rejectUnauthorized: false }
+    };
+  }
+} else {
+  // Configuração local
+  dbConfig = {
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "root", 
+    password: process.env.DB_PASS || "1608",
+    database: process.env.DB_NAME || "techcycle"
+  };
+}
 
 const db = mysql.createConnection(dbConfig);
 
