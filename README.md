@@ -9,6 +9,8 @@ Projeto universitário
 
 Sistema web para gerenciar chamados de descarte de equipamentos eletrônicos, promovendo sustentabilidade e controle de ativos.
 
+Acesse nosso site em: https://techcycle-05bd.onrender.com/
+
 ## 📋 Pré-requisitos
 
 Antes de começar, você precisará ter instalado em sua máquina:
