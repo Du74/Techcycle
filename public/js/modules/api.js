@@ -11,16 +11,23 @@ const API = {
         body: JSON.stringify({ email, senha })
       });
       
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        const text = await response.text();
+        console.error('Resposta não-JSON do servidor:', text);
+        return { success: false, message: `Erro no servidor (${response.status})` };
+      }
       
       if (response.ok) {
         return { success: true, message: data.message };
       } else {
-        return { success: false, message: data.error };
+        return { success: false, message: data.error || data.details || 'Erro desconhecido' };
       }
     } catch (error) {
       console.error('Erro no registro:', error);
-      return { success: false, message: 'Erro de conexão com o servidor' };
+      return { success: false, message: 'Erro de conexão: ' + error.message };
     }
   },
 
@@ -32,17 +39,24 @@ const API = {
         body: JSON.stringify({ email, senha })
       });
       
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        const text = await response.text();
+        console.error('Resposta não-JSON do servidor:', text);
+        return { success: false, message: `Erro no servidor (${response.status})` };
+      }
       
       if (response.ok) {
         localStorage.setItem('user', JSON.stringify(data.usuario));
         return { success: true, message: data.message, user: data.usuario };
       } else {
-        return { success: false, message: data.error };
+        return { success: false, message: data.error || data.details || 'Erro desconhecido' };
       }
     } catch (error) {
       console.error('Erro no login:', error);
-      return { success: false, message: 'Erro de conexão com o servidor' };
+      return { success: false, message: 'Erro de conexão: ' + error.message };
     }
   },
 

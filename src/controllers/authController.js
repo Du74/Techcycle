@@ -12,19 +12,31 @@ exports.register = async (req, res) => {
   try {
     const checkSql = "SELECT * FROM usuarios WHERE email = ?";
     db.query(checkSql, [email], async (err, results) => {
-      if (err) return res.status(500).json({ error: "Erro no servidor" });
+      if (err) {
+        console.error('❌ Erro ao verificar usuário:', err);
+        return res.status(500).json({ error: "Erro no servidor ao verificar usuário", details: err.message });
+      }
       if (results.length > 0) return res.status(400).json({ error: "Usuário já existe" });
       
-      const hashedPassword = await bcrypt.hash(senha, 10);
-      const insertSql = "INSERT INTO usuarios (email, senha) VALUES (?, ?)";
-      
-      db.query(insertSql, [email, hashedPassword], (err, results) => {
-        if (err) return res.status(500).json({ error: "Erro ao criar usuário" });
-        res.json({ message: "Usuário registrado com sucesso!", id: results.insertId });
-      });
+      try {
+        const hashedPassword = await bcrypt.hash(senha, 10);
+        const insertSql = "INSERT INTO usuarios (email, senha) VALUES (?, ?)";
+        
+        db.query(insertSql, [email, hashedPassword], (err, results) => {
+          if (err) {
+            console.error('❌ Erro ao inserir usuário:', err);
+            return res.status(500).json({ error: "Erro ao criar usuário no banco", details: err.message });
+          }
+          res.json({ message: "Usuário registrado com sucesso!", id: results.insertId });
+        });
+      } catch (hashError) {
+        console.error('❌ Erro ao criptografar senha:', hashError);
+        res.status(500).json({ error: "Erro interno de criptografia" });
+      }
     });
   } catch (error) {
-    res.status(500).json({ error: "Erro interno do servidor" });
+    console.error('❌ Erro inesperado no registro:', error);
+    res.status(500).json({ error: "Erro interno do servidor", details: error.message });
   }
 };
 
@@ -38,17 +50,26 @@ exports.login = async (req, res) => {
   try {
     const sql = "SELECT * FROM usuarios WHERE email = ?";
     db.query(sql, [email], async (err, results) => {
-      if (err) return res.status(500).json({ error: "Erro no servidor" });
+      if (err) {
+        console.error('❌ Erro ao buscar usuário no login:', err);
+        return res.status(500).json({ error: "Erro no servidor durante o login", details: err.message });
+      }
       if (results.length === 0) return res.status(401).json({ error: "Usuário não encontrado" });
       
-      const usuario = results[0];
-      const senhaValida = await bcrypt.compare(senha, usuario.senha);
-      if (!senhaValida) return res.status(401).json({ error: "Senha incorreta" });
-      
-      res.json({ message: "Login bem-sucedido!", usuario: { id: usuario.id, email: usuario.email } });
+      try {
+        const usuario = results[0];
+        const senhaValida = await bcrypt.compare(senha, usuario.senha);
+        if (!senhaValida) return res.status(401).json({ error: "Senha incorreta" });
+        
+        res.json({ message: "Login bem-sucedido!", usuario: { id: usuario.id, email: usuario.email } });
+      } catch (compareError) {
+        console.error('❌ Erro ao comparar senhas:', compareError);
+        res.status(500).json({ error: "Erro ao validar credenciais" });
+      }
     });
   } catch (error) {
-    res.status(500).json({ error: "Erro interno do servidor" });
+    console.error('❌ Erro inesperado no login:', error);
+    res.status(500).json({ error: "Erro interno do servidor", details: error.message });
   }
 };
 

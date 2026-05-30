@@ -104,6 +104,7 @@ DATABASE_URL=mysql://usuario:senha@seu-host.aivencloud.com:3306/techcycle
 1. Verifique se `DATABASE_URL` está corretamente configurada
 2. Certifique-se de que o banco de dados `techcycle` foi criado no Aiven
 3. Verifique se o schema foi importado: `mysql -h ... -u ... -p techcycle < banco.sql`
+4. **DICA DE OURO**: Verifique nos logs da Render (aba Logs) se aparece a mensagem "✅ Tabela 'usuarios' detectada". Se aparecer um aviso dizendo que a tabela não foi encontrada, o erro 500 é porque o banco está vazio e você precisa importar o `banco.sql`.
 
 ### Tema Claro/Escuro Não Funciona
 
