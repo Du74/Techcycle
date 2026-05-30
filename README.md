@@ -1,144 +1,252 @@
-TechCycle - Gestão de Resíduos Tecnológicos ♻️
+# Projeto-de-extensão Techcycle
+Projeto universitário
+---
 
-O TechCycle é uma plataforma desenvolvida para facilitar o gerenciamento e o descarte responsável de resíduos eletrônicos. O sistema permite o registro de chamados, acompanhamento de status e geração de relatórios detalhados para garantir que o ciclo de vida dos equipamentos tecnológicos seja encerrado de forma sustentável.
+### 📄 README.md
 
-🚀 Demonstração
+```markdown
+# 🔄 TechCycle - Sistema de Gestão de Descarte Eletrônico
 
-Acesse o projeto em produção: https://techcycle-05bd.onrender.com/
+Sistema web para gerenciar chamados de descarte de equipamentos eletrônicos, promovendo sustentabilidade e controle de ativos.
 
+## 📋 Pré-requisitos
 
+Antes de começar, você precisará ter instalado em sua máquina:
 
+- **Node.js** (versão 16 ou superior) - [Download](https://nodejs.org/)
+- **npm** (geralmente vem com o Node.js)
+- **MySQL** (versão 8.0 ou superior) - [Download](https://dev.mysql.com/downloads/)
+- Um navegador web moderno (Chrome, Firefox, Edge)
 
-✨ Funcionalidades Principais
+## 🚀 Instalação e Configuração
 
-•
-Dashboard Inteligente: Visualização rápida do status dos chamados e estatísticas gerais.
+### 1. Clone o repositório
 
-•
-Gestão de Chamados: Registro detalhado de equipamentos para descarte (tipo, marca, modelo, prioridade).
+```bash
+git clone https://github.com/Du74/Projeto-de-extens-o---Techcycle.git
+cd Projeto-de-extens-o---Techcycle
+```
 
-•
-Relatórios Profissionais: Geração de relatórios em PDF com gráficos dinâmicos e tabelas estruturadas.
+### 2. Instale as dependências do servidor
 
-•
-Filtros Avançados: Consulta de dados por período, tipo de equipamento e status.
+O projeto utiliza um servidor backend em Node.js. Instale as dependências necessárias:
 
-•
-Sistema de Autenticação: Login seguro e recuperação de senha via e-mail.
+```bash
+npm install express mysql2 cors
+```
 
-•
-Interface Moderna: Design responsivo com suporte a modo escuro (Dark Mode).
+### 3. Configure o banco de dados MySQL
 
+1. Acesse o MySQL:
+   ```bash
+   mysql -u root -p
+   ```
 
+2. Crie o banco de dados:
+   ```sql
+   CREATE DATABASE techcycle;
+   USE techcycle;
+   ```
 
+3. Crie a tabela de chamados:
+   ```sql
+   CREATE TABLE chamados (
+       id INT AUTO_INCREMENT PRIMARY KEY,
+       nome_chamado VARCHAR(255) NOT NULL,
+       tipo VARCHAR(100) NOT NULL,
+       marca VARCHAR(100) NOT NULL,
+       data_abertura DATE NOT NULL,
+       dashboard VARCHAR(255),
+       problema TEXT NOT NULL,
+       status VARCHAR(50) DEFAULT 'Aberto',
+       prioridade VARCHAR(50) DEFAULT 'Média',
+       criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   );
+   ```
 
-🛠️ Tecnologias Utilizadas
+4. (Opcional) Se desejar usar o sistema de autenticação, crie também a tabela de usuários:
+   ```sql
+   CREATE TABLE usuarios (
+       id INT AUTO_INCREMENT PRIMARY KEY,
+       email VARCHAR(255) UNIQUE NOT NULL,
+       senha VARCHAR(255) NOT NULL
+   );
+   ```
 
-Frontend
+### 4. Configure o servidor
 
-•
-HTML5 & CSS3: Estrutura e estilização moderna.
+Crie um arquivo `server.js` na raiz do projeto com o seguinte conteúdo (ajuste as credenciais do banco conforme sua configuração):
 
-•
-JavaScript (ES6+): Lógica de interface e consumo de API.
+```javascript
+const express = require('express');
+const mysql = require('mysql2');
+const cors = require('cors');
 
-•
-Bootstrap 5: Framework para responsividade.
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use(express.static('.'));
 
-•
-Chart.js: Visualização de dados e gráficos.
+// Configuração do banco de dados
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'sua_senha',
+    database: 'techcycle'
+});
 
-•
-jsPDF & AutoTable: Geração de documentos PDF estruturados.
+db.connect(err => {
+    if (err) {
+        console.error('Erro ao conectar ao MySQL:', err);
+        return;
+    }
+    console.log('✅ Conectado ao MySQL');
+});
 
-Backend
+// Rotas da API
+app.get('/chamados', (req, res) => {
+    db.query('SELECT * FROM chamados ORDER BY criado_em DESC', (err, results) => {
+        if (err) return res.status(500).json(err);
+        res.json(results);
+    });
+});
 
-•
-Node.js: Ambiente de execução.
+app.post('/chamados', (req, res) => {
+    const { nome_chamado, tipo, marca, data_abertura, dashboard, problema } = req.body;
+    const sql = 'INSERT INTO chamados (nome_chamado, tipo, marca, data_abertura, dashboard, problema) VALUES (?, ?, ?, ?, ?, ?)';
+    db.query(sql, [nome_chamado, tipo, marca, data_abertura, dashboard, problema], (err, result) => {
+        if (err) return res.status(500).json(err);
+        res.status(201).json({ id: result.insertId, message: 'Chamado criado com sucesso' });
+    });
+});
 
-•
-Express: Framework web para rotas e middleware.
+app.delete('/chamados/:id', (req, res) => {
+    db.query('DELETE FROM chamados WHERE id = ?', [req.params.id], (err, result) => {
+        if (err) return res.status(500).json(err);
+        res.json({ message: 'Chamado deletado com sucesso' });
+    });
+});
 
-•
-MySQL: Banco de dados relacional para persistência.
+app.delete('/chamados', (req, res) => {
+    db.query('DELETE FROM chamados', (err, result) => {
+        if (err) return res.status(500).json(err);
+        res.json({ message: 'Todos os chamados foram deletados', deletedCount: result.affectedRows });
+    });
+});
 
-•
-Bcryptjs: Criptografia de senhas.
+app.get('/estatisticas', (req, res) => {
+    db.query('SELECT COUNT(*) as total, SUM(CASE WHEN status = "Concluído" THEN 1 ELSE 0 END) as concluidos FROM chamados', (err, results) => {
+        if (err) return res.status(500).json(err);
+        const total = results[0].total;
+        const concluidos = results[0].concluidos;
+        const pendentes = total - concluidos;
+        const taxaSucesso = total > 0 ? ((concluidos / total) * 100).toFixed(1) : 0;
+        res.json({ total, pendentes, concluidos, taxaSucesso });
+    });
+});
 
-•
-Nodemailer: Serviço de envio de e-mails.
+// Rota de login (simplificada para demonstração)
+app.post('/login', (req, res) => {
+    const { email, senha } = req.body;
+    db.query('SELECT * FROM usuarios WHERE email = ? AND senha = ?', [email, senha], (err, results) => {
+        if (err || results.length === 0) return res.status(401).json({ error: 'Credenciais inválidas' });
+        res.json({ message: 'Login bem-sucedido' });
+    });
+});
 
+app.post('/register', (req, res) => {
+    const { email, senha } = req.body;
+    db.query('INSERT INTO usuarios (email, senha) VALUES (?, ?)', [email, senha], (err, result) => {
+        if (err) return res.status(400).json({ error: 'Email já cadastrado' });
+        res.status(201).json({ message: 'Usuário registrado com sucesso' });
+    });
+});
 
+// Inicia o servidor
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+});
+```
 
+### 5. Estrutura de arquivos
 
-📦 Como Rodar o Projeto Localmente
+Certifique-se de que sua pasta do projeto está organizada assim:
 
-Pré-requisitos
+```
+Projeto-de-extens-o---Techcycle/
+│
+├── server.js
+├── package.json
+├── css/
+│   └── style.css
+├── js/
+│   └── script.js
+├── pages/
+│   ├── dashboard.html
+│   ├── novo-chamado.html
+│   ├── relatorios.html
+│   ├── configuracoes.html
+│   ├── login.html
+│   ├── register.html
+│   ├── about.html
+│   └── introducao_techcycle.html
+└── README.md
+```
 
-•
-Node.js instalado.
+### 6. Iniciando o servidor
 
-•
-MySQL Server rodando.
+Execute o servidor com o comando:
 
-Passo a Passo
-
-1.
-Clonar o repositório:
-
-Bash
-
-
-git clone https://github.com/Du74/Techcycle.git
-cd Techcycle
-
-
-
-
-
-2.
-Configurar o Banco de Dados:
-
-•
-Execute o script contido no arquivo banco.sql no seu terminal MySQL ou ferramenta de gestão (como MySQL Workbench ).
-
-
-
-3.
-Instalar as dependências:
-
-Bash
-
-
-npm install
-
-
-
-
-
-4.
-Iniciar o servidor:
-
-Bash
-
-
+```bash
 node server.js
+```
 
+Você verá a mensagem:
+```
+✅ Conectado ao MySQL
+🚀 Servidor rodando em http://localhost:3000
+```
 
+## 🌐 Acessando a aplicação
 
-O sistema estará disponível em http://localhost:3000.
+Abra o navegador e acesse:
 
+- **Página inicial:** `http://localhost:3000/pages/introducao_techcycle.html`
+- **Login:** `http://localhost:3000/pages/login.html`
+- **Dashboard (após login):** `http://localhost:3000/pages/dashboard.html`
 
+> ⚠️ **Nota:** Para testes, você pode usar diretamente o dashboard se ainda não tiver configurado o registro/login. O sistema de autenticação atual é básico e deve ser ajustado para produção (ex: hash de senha).
 
+## 📌 Funcionalidades principais
 
+- **Registro e login** de usuários
+- **Criação de chamados** para descarte de equipamentos
+- **Listagem de chamados** (recentes e todos)
+- **Dashboard com estatísticas** (total, pendentes, concluídos, taxa de sucesso)
+- **Relatórios** com gráficos e filtros
+- **Configurações** do usuário e sistema
+- **Gerenciamento de chamados** (exclusão individual ou em massa)
 
+## 🛠️ Tecnologias utilizadas
 
-📄 Licença
+- **Front-end:** HTML5, CSS3, JavaScript, Bootstrap 5, Chart.js
+- **Back-end:** Node.js, Express
+- **Banco de dados:** MySQL
+- **Estilização adicional:** CSS customizado com variáveis e efeitos modernos
 
-Este projeto foi desenvolvido como parte de um projeto de extensão acadêmica. Sinta-se à vontade para usar e contribuir!
+## 📝 Possíveis melhorias futuras
 
+- Implementar hash de senhas com bcrypt
+- Adicionar autenticação com JWT
+- Melhorar validação de entrada nos formulários
+- Implementar upload de arquivos para anexos
+- Criar paginação na listagem de chamados
+- Adicionar recuperação de senha por email
 
+## 👥 Equipe TechCycle
 
+Desenvolvido por alunos do curso de extensão com foco em sustentabilidade e gestão de resíduos eletrônicos.
 
-Desenvolvido por Du74
+---
 
