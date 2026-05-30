@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TechCycle</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body class="dashboard-container">
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="sidebar-modern" style="width: 280px;">
+            <div class="sidebar-brand">
+                <h3 class="text-primary">TechCycle</h3>
+                <small class="text-muted">Sistema de Gestão</small>
+            </div>
+            
+            <div class="sidebar-menu">
+                <a href="dashboard.html" class="menu-item active">
+                    <i class="menu-icon fas fa-home"></i>
+                    Dashboard
+                </a>
+                <a href="novo-chamado.html" class="menu-item">
+                    <i class="menu-icon fas fa-plus-circle"></i>
+                    Novo Chamado
+                </a>
+                <a href="#" class="menu-item" onclick="abrirTodosChamados()">
+                    <i class="menu-icon fas fa-list"></i>
+                    Meus Chamados
+                </a>
+                <a href="relatorios.html" class="menu-item">
+                    <i class="menu-icon fas fa-chart-bar"></i>
+                    Relatórios
+                </a>
+                <a href="configuracoes.html" class="menu-item">
+                    <i class="menu-icon fas fa-cog"></i>
+                    Configurações
+                </a>
+                
+                <div class="menu-divider"></div>
+                
+                <a href="#" class="menu-item text-warning" onclick="abrirModalLimpar()">
+                    <i class="menu-icon fas fa-trash-alt"></i>
+                    Limpar Chamados
+                </a>
+            
+                <a href="/login" class="menu-item">
+                    <i class="menu-icon fas fa-sign-out-alt"></i>
+                    Sair
+                </a>
+            </div>
+            
+            <div class="mt-auto p-3">
+                <div class="text-center">
+                    <small class="text-muted">TechCycle v1.0</small>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <div class="flex-grow-1">
+            <!-- Header -->
+            <header class="header-modern">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-outline-primary me-3 d-md-none" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h4 class="mb-0">Dashboard de Gestão</h4>
+                </div>
+                
+                <div class="header-right">
+                    <div class="theme-toggle" onclick="toggleTheme()">
+                        <i class="fas fa-moon"></i>
+                    </div>
+                    
+                    <div class="stats-header">
+                        <div class="stat-item">
+                            <div class="stat-value" id="headerTotal">0</div>
+                            <div class="stat-label">Total</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="headerPendentes">0</div>
+                            <div class="stat-label">Pendentes</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="headerConcluidos">0</div>
+                            <div class="stat-label">Concluídos</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="headerSucesso">0%</div>
+                            <div class="stat-label">Sucesso</div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-menu-container">
+                        <div class="dropdown">
+                            <button class="user-menu dropdown-toggle" data-bs-toggle="dropdown">
+                                <i class="fas fa-user"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Perfil</a></li>
+                                <li><a class="dropdown-item" href="configuracoes.html"><i class="fas fa-cog me-2"></i>Configurações</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="/login"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Conteúdo -->
+            <main class="p-4">
+                <div class="stats-grid fade-in">
+                    <div class="stat-card">
+                        <div class="stat-icon text-primary">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="stat-number" id="totalChamados">0</div>
+                        <div class="stat-title">Total de Chamados</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon text-warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-number" id="chamadosPendentes">0</div>
+                        <div class="stat-title">Pendentes</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon text-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-number" id="chamadosConcluidos">0</div>
+                        <div class="stat-title">Concluídos</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon text-info">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-number" id="taxaSucesso">0%</div>
+                        <div class="stat-title">Taxa de Sucesso</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-6 mb-4">
+                        <div class="form-modern fade-in">
+                            <h5 class="text-primary mb-4">
+                                <i class="fas fa-plus-circle me-2"></i>Novo Chamado de Descarte
+                            </h5>
+                            
+                            <form id="chamadoForm">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nome do Equipamento</label>
+                                        <input type="text" class="form-control" id="nomeChamado" placeholder="Ex: Impressora LaserJet" required>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label class="form-label">Tipo</label>
+                                        <select class="form-control" id="tipo" required>
+                                            <option value="">Selecione...</option>
+                                            <option value="Computador">Computador</option>
+                                            <option value="Notebook">Notebook</option>
+                                            <option value="Impressora">Impressora</option>
+                                            <option value="Monitor">Monitor</option>
+                                            <option value="Periférico">Periférico</option>
+                                            <option value="Outro">Outro</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label class="form-label">Marca</label>
+                                        <input type="text" class="form-control" id="marca" placeholder="Ex: HP, Dell, Samsung" required>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label class="form-label">Data do Descarte</label>
+                                        <input type="date" class="form-control" id="dataAbertura" required>
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <label class="form-label">Localização</label>
+                                        <input type="text" class="form-control" id="dashboard" placeholder="Ex: Setor TI - Andar 2">
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <label class="form-label">Descrição do Problema</label>
+                                        <textarea class="form-control" id="problema" rows="3" placeholder="Descreva detalhadamente o problema..." required></textarea>
+                                    </div>
+                                    
+                                    <div class="col-12 mt-4">
+                                        <button type="submit" class="btn btn-modern w-100">
+                                            <i class="fas fa-paper-plane me-2"></i>Registrar Chamado
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6 mb-4">
+                        <div class="form-modern fade-in">
+                            <h5 class="text-primary mb-4">
+                                <i class="fas fa-history me-2"></i>Chamados Recentes
+                            </h5>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-modern">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Equipamento</th>
+                                            <th>Status</th>
+                                            <th>Data</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabelaChamados">
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">
+                                                <i class="fas fa-spinner fa-spin me-2"></i>Carregando...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="text-center mt-3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal para Listar Todos os Chamados -->
+    <div class="modal fade" id="todosChamadosModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-primary">
+                        <i class="fas fa-list-alt me-2"></i>Todos os Chamados
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table table-modern">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Equipamento</th>
+                                    <th>Tipo</th>
+                                    <th>Marca</th>
+                                    <th>Status</th>
+                                    <th>Data</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="todosChamadosBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-warning" onclick="abrirModalLimpar()">
+                        <i class="fas fa-trash me-2"></i>Limpar Todos
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div class="modal fade" id="confirmarLimparModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Limpeza
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Tem certeza que deseja deletar TODOS os chamados?</strong></p>
+                    <p class="text-muted">Esta ação não pode ser desfeita.</p>
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Chamados afetados:</strong> <span id="totalChamadosCount">0</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" onclick="limparTodosChamados()">Sim, Limpar Tudo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Módulos do projeto -->
+    <script src="/js/modules/api.js"></script>
+    <script src="/js/modules/utils.js"></script>
+    <!-- Script específico da página -->
+    <script src="/js/pages/dashboard.js"></script>
+</body>
+</html>

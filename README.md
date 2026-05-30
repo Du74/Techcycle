@@ -1,257 +1,215 @@
-# Projeto-de-extens-o---Techcycle
-Projeto universitário
----
+# TechCycle - Sistema de Gestão de Chamados
 
-### 📄 README.md
+Sistema moderno e organizado para gestão de chamados técnicos com autenticação, recuperação de senha e dashboard interativo.
 
-```markdown
-# 🔄 TechCycle - Sistema de Gestão de Descarte Eletrônico
-
-Sistema web para gerenciar chamados de descarte de equipamentos eletrônicos, promovendo sustentabilidade e controle de ativos.
-
-## 📋 Pré-requisitos
-
-Antes de começar, você precisará ter instalado em sua máquina:
-
-- **Node.js** (versão 16 ou superior) - [Download](https://nodejs.org/)
-- **npm** (geralmente vem com o Node.js)
-- **MySQL** (versão 8.0 ou superior) - [Download](https://dev.mysql.com/downloads/)
-- Um navegador web moderno (Chrome, Firefox, Edge)
-
-## 🚀 Instalação e Configuração
-
-### 1. Clone o repositório
-
-```bash
-git clone https://github.com/Du74/Projeto-de-extens-o---Techcycle.git
-cd Projeto-de-extens-o---Techcycle
-```
-
-### 2. Instale as dependências do servidor
-
-O projeto utiliza um servidor backend em Node.js. Instale as dependências necessárias:
-
-```bash
-npm install express mysql2 cors
-```
-
-### 3. Configure o banco de dados MySQL
-
-1. Acesse o MySQL:
-   ```bash
-   mysql -u root -p
-   ```
-
-2. Crie o banco de dados:
-   ```sql
-   CREATE DATABASE techcycle;
-   USE techcycle;
-   ```
-
-3. Crie a tabela de chamados:
-   ```sql
-   CREATE TABLE chamados (
-       id INT AUTO_INCREMENT PRIMARY KEY,
-       nome_chamado VARCHAR(255) NOT NULL,
-       tipo VARCHAR(100) NOT NULL,
-       marca VARCHAR(100) NOT NULL,
-       data_abertura DATE NOT NULL,
-       dashboard VARCHAR(255),
-       problema TEXT NOT NULL,
-       status VARCHAR(50) DEFAULT 'Aberto',
-       prioridade VARCHAR(50) DEFAULT 'Média',
-       criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-   );
-   ```
-
-4. (Opcional) Se desejar usar o sistema de autenticação, crie também a tabela de usuários:
-   ```sql
-   CREATE TABLE usuarios (
-       id INT AUTO_INCREMENT PRIMARY KEY,
-       email VARCHAR(255) UNIQUE NOT NULL,
-       senha VARCHAR(255) NOT NULL
-   );
-   ```
-
-### 4. Configure o servidor
-
-Crie um arquivo `server.js` na raiz do projeto com o seguinte conteúdo (ajuste as credenciais do banco conforme sua configuração):
-
-```javascript
-const express = require('express');
-const mysql = require('mysql2');
-const cors = require('cors');
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.static('.'));
-
-// Configuração do banco de dados
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'sua_senha',
-    database: 'techcycle'
-});
-
-db.connect(err => {
-    if (err) {
-        console.error('Erro ao conectar ao MySQL:', err);
-        return;
-    }
-    console.log('✅ Conectado ao MySQL');
-});
-
-// Rotas da API
-app.get('/chamados', (req, res) => {
-    db.query('SELECT * FROM chamados ORDER BY criado_em DESC', (err, results) => {
-        if (err) return res.status(500).json(err);
-        res.json(results);
-    });
-});
-
-app.post('/chamados', (req, res) => {
-    const { nome_chamado, tipo, marca, data_abertura, dashboard, problema } = req.body;
-    const sql = 'INSERT INTO chamados (nome_chamado, tipo, marca, data_abertura, dashboard, problema) VALUES (?, ?, ?, ?, ?, ?)';
-    db.query(sql, [nome_chamado, tipo, marca, data_abertura, dashboard, problema], (err, result) => {
-        if (err) return res.status(500).json(err);
-        res.status(201).json({ id: result.insertId, message: 'Chamado criado com sucesso' });
-    });
-});
-
-app.delete('/chamados/:id', (req, res) => {
-    db.query('DELETE FROM chamados WHERE id = ?', [req.params.id], (err, result) => {
-        if (err) return res.status(500).json(err);
-        res.json({ message: 'Chamado deletado com sucesso' });
-    });
-});
-
-app.delete('/chamados', (req, res) => {
-    db.query('DELETE FROM chamados', (err, result) => {
-        if (err) return res.status(500).json(err);
-        res.json({ message: 'Todos os chamados foram deletados', deletedCount: result.affectedRows });
-    });
-});
-
-app.get('/estatisticas', (req, res) => {
-    db.query('SELECT COUNT(*) as total, SUM(CASE WHEN status = "Concluído" THEN 1 ELSE 0 END) as concluidos FROM chamados', (err, results) => {
-        if (err) return res.status(500).json(err);
-        const total = results[0].total;
-        const concluidos = results[0].concluidos;
-        const pendentes = total - concluidos;
-        const taxaSucesso = total > 0 ? ((concluidos / total) * 100).toFixed(1) : 0;
-        res.json({ total, pendentes, concluidos, taxaSucesso });
-    });
-});
-
-// Rota de login (simplificada para demonstração)
-app.post('/login', (req, res) => {
-    const { email, senha } = req.body;
-    db.query('SELECT * FROM usuarios WHERE email = ? AND senha = ?', [email, senha], (err, results) => {
-        if (err || results.length === 0) return res.status(401).json({ error: 'Credenciais inválidas' });
-        res.json({ message: 'Login bem-sucedido' });
-    });
-});
-
-app.post('/register', (req, res) => {
-    const { email, senha } = req.body;
-    db.query('INSERT INTO usuarios (email, senha) VALUES (?, ?)', [email, senha], (err, result) => {
-        if (err) return res.status(400).json({ error: 'Email já cadastrado' });
-        res.status(201).json({ message: 'Usuário registrado com sucesso' });
-    });
-});
-
-// Inicia o servidor
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
-});
-```
-
-### 5. Estrutura de arquivos
-
-Certifique-se de que sua pasta do projeto está organizada assim:
+## 📋 Estrutura do Projeto
 
 ```
-Projeto-de-extens-o---Techcycle/
-│
-├── server.js
-├── package.json
-├── css/
-│   └── style.css
-├── js/
-│   └── script.js
-├── pages/
+techcycle/
+├── src/                          # Código-fonte do back-end
+│   ├── config/                   # Configurações (banco de dados)
+│   │   └── db.js                 # Conexão MySQL
+│   ├── controllers/              # Lógica de controle
+│   │   ├── authController.js     # Autenticação e recuperação de senha
+│   │   ├── chamadosController.js # Gestão de chamados
+│   │   └── pagesController.js    # Entrega de páginas HTML
+│   ├── routes/                   # Definição de rotas
+│   │   ├── auth.routes.js        # Rotas de autenticação
+│   │   ├── chamados.routes.js    # Rotas de chamados
+│   │   └── pages.routes.js       # Rotas de páginas
+│   ├── middlewares/              # Middlewares (para futuras implementações)
+│   ├── services/                 # Serviços (para futuras implementações)
+│   └── app.js                    # Configuração do Express
+├── public/                       # Arquivos estáticos
+│   ├── css/                      # Folhas de estilo
+│   │   └── style.css             # CSS principal
+│   ├── js/                       # Scripts do front-end
+│   │   ├── modules/              # Módulos reutilizáveis
+│   │   │   ├── api.js            # Centraliza chamadas fetch
+│   │   │   └── utils.js          # Funções utilitárias
+│   │   └── pages/                # Scripts específicos de páginas
+│   │       ├── login.js          # Lógica da página de login
+│   │       ├── register.js       # Lógica da página de registro
+│   │       └── dashboard.js      # Lógica do dashboard
+│   └── assets/                   # Imagens e ícones
+├── views/                        # Arquivos HTML
+│   ├── login.html
+│   ├── register.html
 │   ├── dashboard.html
 │   ├── novo-chamado.html
 │   ├── relatorios.html
 │   ├── configuracoes.html
-│   ├── login.html
-│   ├── register.html
 │   ├── about.html
 │   └── introducao_techcycle.html
-└── README.md
+├── server.js                     # Ponto de entrada
+├── package.json                  # Dependências do projeto
+├── .env                          # Variáveis de ambiente
+├── .env.example                  # Exemplo de variáveis
+├── .gitignore                    # Arquivos ignorados pelo Git
+├── banco.sql                     # Script de criação do banco
+└── README.md                     # Este arquivo
 ```
 
-### 6. Iniciando o servidor
+## 🚀 Instalação e Execução
 
-Execute o servidor com o comando:
+### Pré-requisitos
+- Node.js >= 14.0.0
+- MySQL 5.7 ou superior
+- npm ou yarn
+
+### Passos
+
+1. **Clone o repositório**
+   ```bash
+   git clone <seu-repositorio>
+   cd techcycle
+   ```
+
+2. **Instale as dependências**
+   ```bash
+   npm install
+   ```
+
+3. **Configure o banco de dados**
+   ```bash
+   # Crie o banco de dados
+   mysql -u root -p < banco.sql
+   ```
+
+4. **Configure as variáveis de ambiente**
+   ```bash
+   cp .env.example .env
+   # Edite o arquivo .env com suas configurações
+   ```
+
+5. **Inicie o servidor**
+   ```bash
+   # Modo produção
+   npm start
+
+   # Modo desenvolvimento (com auto-reload)
+   npm run dev
+   ```
+
+O servidor estará disponível em `http://localhost:3000`
+
+## 📚 Arquitetura
+
+### Back-end (Node.js + Express)
+
+#### Controllers
+- **authController.js**: Gerencia registro, login e recuperação de senha
+- **chamadosController.js**: Operações CRUD de chamados e estatísticas
+- **pagesController.js**: Entrega de arquivos HTML
+
+#### Routes
+- **auth.routes.js**: POST `/register`, POST `/login`, POST `/api/esqueci-senha`, GET `/resetar-senha`
+- **chamados.routes.js**: GET/POST `/chamados`, GET `/estatisticas`, DELETE `/chamados/:id`
+- **pages.routes.js**: GET `/`, GET `/login`, GET `/dashboard`, etc.
+
+#### Config
+- **db.js**: Gerencia a conexão com MySQL usando variáveis de ambiente
+
+### Front-end (Vanilla JavaScript)
+
+#### Módulos
+- **api.js**: Centraliza todas as chamadas fetch (login, registro, chamados, etc.)
+- **utils.js**: Funções utilitárias (tema, autenticação, formatação, validação)
+
+#### Scripts de Página
+- **login.js**: Lógica do formulário de login e recuperação de senha
+- **register.js**: Lógica do formulário de registro com validação
+- **dashboard.js**: Gestão de chamados, estatísticas e modais
+
+## 🔑 Principais Funcionalidades
+
+- ✅ **Autenticação**: Registro e login com bcrypt
+- ✅ **Recuperação de Senha**: Sistema de tokens com expiração
+- ✅ **Gestão de Chamados**: CRUD completo
+- ✅ **Dashboard**: Estatísticas em tempo real
+- ✅ **Tema Claro/Escuro**: Persistência em localStorage
+- ✅ **Responsivo**: Interface adaptável a diferentes tamanhos de tela
+
+## 🛠️ Tecnologias Utilizadas
+
+### Back-end
+- **Express.js**: Framework web
+- **MySQL**: Banco de dados
+- **bcryptjs**: Criptografia de senhas
+- **CORS**: Compartilhamento de recursos
+- **dotenv**: Gerenciamento de variáveis de ambiente
+
+### Front-end
+- **Bootstrap 5**: Framework CSS
+- **Font Awesome**: Ícones
+- **Chart.js**: Gráficos (em relatorios.html)
+- **Vanilla JavaScript**: Sem dependências desnecessárias
+
+## 📝 Variáveis de Ambiente
+
+```env
+# Servidor
+PORT=3000
+NODE_ENV=development
+
+# Banco de Dados
+DB_HOST=localhost
+DB_USER=root
+DB_PASS=1608
+DB_NAME=techcycle
+
+# Email (opcional)
+EMAIL_USER=seu_email@gmail.com
+EMAIL_PASS=sua_senha_app
+```
+
+## 🔐 Segurança
+
+- Senhas são criptografadas com bcrypt (10 rounds)
+- Tokens de recuperação de senha expiram em 1 hora
+- CORS configurado para aceitar requisições
+- Validação de entrada em formulários
+
+## 📊 Endpoints da API
+
+### Autenticação
+- `POST /register` - Registrar novo usuário
+- `POST /login` - Fazer login
+- `POST /api/esqueci-senha` - Solicitar recuperação de senha
+- `GET /resetar-senha?token=...` - Verificar token e exibir formulário
+- `POST /api/resetar-senha` - Redefinir senha
+
+### Chamados
+- `GET /chamados` - Listar todos os chamados
+- `POST /chamados` - Criar novo chamado
+- `DELETE /chamados/:id` - Deletar chamado específico
+- `DELETE /chamados` - Deletar todos os chamados
+- `GET /estatisticas` - Obter estatísticas
+
+### Páginas
+- `GET /` - Página inicial
+- `GET /login` - Página de login
+- `GET /register` - Página de registro
+- `GET /dashboard` - Dashboard
+- `GET /novo-chamado` - Criar chamado
+- `GET /relatorios` - Relatórios
+- `GET /configuracoes` - Configurações
+- `GET /about` - Sobre
+
+## 🧪 Testes
 
 ```bash
-node server.js
+npm test
 ```
 
-Você verá a mensagem:
-```
-✅ Conectado ao MySQL
-🚀 Servidor rodando em http://localhost:3000
-```
+## 📄 Licença
 
-## 🌐 Acessando a aplicação
+MIT
 
-Abra o navegador e acesse:
+## 👥 Contribuidores
 
-- **Página inicial:** `http://localhost:3000/pages/introducao_techcycle.html`
-- **Login:** `http://localhost:3000/pages/login.html`
-- **Dashboard (após login):** `http://localhost:3000/pages/dashboard.html`
+TechCycle Team
 
-> ⚠️ **Nota:** Para testes, você pode usar diretamente o dashboard se ainda não tiver configurado o registro/login. O sistema de autenticação atual é básico e deve ser ajustado para produção (ex: hash de senha).
+## 📞 Suporte
 
-## 📌 Funcionalidades principais
-
-- **Registro e login** de usuários
-- **Criação de chamados** para descarte de equipamentos
-- **Listagem de chamados** (recentes e todos)
-- **Dashboard com estatísticas** (total, pendentes, concluídos, taxa de sucesso)
-- **Relatórios** com gráficos e filtros
-- **Configurações** do usuário e sistema
-- **Gerenciamento de chamados** (exclusão individual ou em massa)
-
-## 🛠️ Tecnologias utilizadas
-
-- **Front-end:** HTML5, CSS3, JavaScript, Bootstrap 5, Chart.js
-- **Back-end:** Node.js, Express
-- **Banco de dados:** MySQL
-- **Estilização adicional:** CSS customizado com variáveis e efeitos modernos
-
-## 📝 Possíveis melhorias futuras
-
-- Implementar hash de senhas com bcrypt
-- Adicionar autenticação com JWT
-- Melhorar validação de entrada nos formulários
-- Implementar upload de arquivos para anexos
-- Criar paginação na listagem de chamados
-- Adicionar recuperação de senha por email
-
-## 👥 Equipe TechCycle
-
-Desenvolvido por alunos do curso de extensão com foco em sustentabilidade e gestão de resíduos eletrônicos.
-
----
-
-🔗 **Repositório:** [GitHub - TechCycle](https://github.com/Du74/Projeto-de-extens-o---Techcycle)
-```
-
----
-
+Para dúvidas ou problemas, abra uma issue no repositório.
