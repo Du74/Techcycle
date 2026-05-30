@@ -6,7 +6,7 @@
     <title>Novo Chamado - TechCycle</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body class="dashboard-container">
     <div class="d-flex">
@@ -18,11 +18,11 @@
             </div>
             
             <div class="sidebar-menu">
-                <a href="dashboard.html" class="menu-item">
+                <a href="/dashboard" class="menu-item">
                     <i class="menu-icon fas fa-home"></i>
                     Dashboard
                 </a>
-                <a href="novo-chamado.html" class="menu-item active">
+                <a href="/novo-chamado" class="menu-item active">
                     <i class="menu-icon fas fa-plus-circle"></i>
                     Novo Chamado
                 </a>
@@ -30,11 +30,11 @@
                     <i class="menu-icon fas fa-list"></i>
                     Meus Chamados
                 </a>
-                <a href="relatorios.html" class="menu-item">
+                <a href="/relatorios" class="menu-item">
                     <i class="menu-icon fas fa-chart-bar"></i>
                     Relatórios
                 </a>
-                <a href="configuracoes.html" class="menu-item">
+                <a href="/configuracoes" class="menu-item">
                     <i class="menu-icon fas fa-cog"></i>
                     Configurações
                 </a>
@@ -82,7 +82,7 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Perfil</a></li>
-                                <li><a class="dropdown-item" href="configuracoes.html"><i class="fas fa-cog me-2"></i>Configurações</a></li>
+                                <li><a class="dropdown-item" href="/configuracoes"><i class="fas fa-cog me-2"></i>Configurações</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="/login"><i class="fas fa-sign-out-alt me-2"></i>Sair</a></li>
                             </ul>
@@ -170,7 +170,7 @@
                                     
                                     <div class="col-12 mt-4">
                                         <div class="d-flex gap-2 justify-content-end">
-                                            <button type="button" class="btn btn-secondary" onclick="window.location.href='dashboard.html'">
+                                            <button type="button" class="btn btn-secondary" onclick="window.location.href='/dashboard'">
                                                 <i class="fas fa-arrow-left me-2"></i>Voltar
                                             </button>
                                             <button type="submit" class="btn btn-modern">
@@ -206,7 +206,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-success" onclick="window.location.href='dashboard.html'">Ir para Dashboard</button>
+                    <button type="button" class="btn btn-success" onclick="window.location.href='/dashboard'">Ir para Dashboard</button>
                 </div>
             </div>
         </div>
