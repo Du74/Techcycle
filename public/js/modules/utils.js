@@ -140,3 +140,5 @@ const Utils = {
 
 // Exportar para uso global
 window.Utils = Utils;
+window.toggleTheme = () => Utils.toggleTheme();
+window.loadSavedTheme = () => Utils.loadSavedTheme();

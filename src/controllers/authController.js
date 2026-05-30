@@ -98,7 +98,9 @@ exports.solicitarRecuperacao = async (req, res) => {
         console.log('✅ Token salvo! ID:', result.insertId);
         
         // Mostrar link no console
-        const linkRecuperacao = `http://localhost:3000/resetar-senha?token=${token}`;
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+        const host = req.get('host');
+        const linkRecuperacao = `${protocol}://${host}/resetar-senha?token=${token}`;
         console.log('\n' + '='.repeat(70));
         console.log('🔗 LINK DE RECUPERAÇÃO DE SENHA');
         console.log('='.repeat(70));

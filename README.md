@@ -147,6 +147,7 @@ O servidor estará disponível em `http://localhost:3000`
 
 ## 📝 Variáveis de Ambiente
 
+### Desenvolvimento Local
 ```env
 # Servidor
 PORT=3000
@@ -162,6 +163,17 @@ DB_NAME=techcycle
 EMAIL_USER=seu_email@gmail.com
 EMAIL_PASS=sua_senha_app
 ```
+
+### Produção (Render + Aiven)
+```env
+PORT=3000
+NODE_ENV=production
+
+# Use DATABASE_URL para conexão com Aiven
+DATABASE_URL=mysql://usuario:senha@host.aivencloud.com:porta/database
+```
+
+**Nota**: A variável `DATABASE_URL` é automaticamente parseada e configurada com SSL para Aiven.
 
 ## 🔐 Segurança
 
@@ -205,6 +217,28 @@ npm test
 ## 📄 Licença
 
 MIT
+
+## 🔧 Correções Realizadas (V2.0)
+
+### Tema Claro/Escuro
+- **Problema**: O botão de tema não funcionava em modo de produção
+- **Causa**: A função `toggleTheme()` estava encapsulada em `Utils` sem alias global
+- **Solução**: Adicionados aliases globais em `utils.js` para `toggleTheme()` e `loadSavedTheme()`
+
+### Autenticação (Login/Registro)
+- **Problema**: Erros 500 ao tentar registrar ou fazer login
+- **Causa**: Controllers não importavam a conexão do banco de dados
+- **Solução**: Adicionada importação `const db = require('../config/db')` em `authController.js` e `chamadosController.js`
+
+### Conexão com Aiven
+- **Problema**: Falha na conexão com banco de dados gerenciado
+- **Causa**: SSL não era configurado corretamente para `DATABASE_URL`
+- **Solução**: Melhorada a lógica de parse de `DATABASE_URL` com suporte robusto a SSL
+
+### Link de Recuperação de Senha
+- **Problema**: Link de recuperação estava hardcoded para `localhost:3000`
+- **Causa**: Não considerava o ambiente de produção
+- **Solução**: Link agora usa `req.headers['x-forwarded-proto']` e `req.get('host')` para funcionar em qualquer ambiente
 
 ## 👥 Contribuidores
 

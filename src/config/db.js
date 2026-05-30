@@ -7,18 +7,22 @@ if (process.env.DATABASE_URL) {
   // Se houver DATABASE_URL, usamos ela diretamente (o driver mysql suporta string de conexão)
   dbConfig = process.env.DATABASE_URL;
   
-  // Adiciona suporte a SSL se for produção (necessário para Aiven)
-  if (process.env.NODE_ENV === 'production') {
-    // Para strings de conexão, o driver mysql pode precisar de ajustes ou usar um objeto
+  // Para Aiven e outros serviços gerenciados, o SSL é obrigatório
+  try {
     const mysqlUrl = new URL(process.env.DATABASE_URL);
     dbConfig = {
       host: mysqlUrl.hostname,
-      port: mysqlUrl.port,
+      port: mysqlUrl.port || 3306,
       user: mysqlUrl.username,
       password: decodeURIComponent(mysqlUrl.password),
       database: mysqlUrl.pathname.substring(1),
-      ssl: { rejectUnauthorized: false }
+      ssl: { 
+        rejectUnauthorized: false 
+      },
+      connectTimeout: 10000
     };
+  } catch (e) {
+    dbConfig = process.env.DATABASE_URL;
   }
 } else {
   // Configuração local
